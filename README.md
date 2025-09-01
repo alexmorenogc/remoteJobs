@@ -22,7 +22,7 @@ This web application displays an interactive database of remote job portals, gro
 
 ## Demo
 
-You can access a live demo at [alexmorenogc.github.io](https://alexmorenogc.github.io).
+You can access a live demo at [alexmorenogc.github.io/remoteJobs/](https://alexmorenogc.github.io/remoteJobs/).
 
 ## Project Structure
 
