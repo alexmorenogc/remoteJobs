@@ -35,4 +35,4 @@ This project is under the GNU General Public License v3. See the [`LICENSE`](LIC
 
 ## Author
 
-Alex Moreno using Claude AI (0% human work done) as a proof of concept.
+Alex Moreno using Claude AI (0% human work done) as a proof of concept. Some minor changes done with Copilot.
