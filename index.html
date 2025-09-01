@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Remote Job Boards Database</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .controls {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+            position: relative;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px 20px 12px 45px;
+            border: 2px solid #e9ecef;
+            border-radius: 25px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+        }
+
+        .filter-select {
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 25px;
+            background: white;
+            font-size: 14px;
+            min-width: 150px;
+        }
+
+        .export-btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .export-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+        }
+
+        .stats {
+            display: flex;
+            gap: 20px;
+            margin-left: auto;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 10px;
+            background: white;
+            border-radius: 15px;
+            min-width: 80px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #667eea;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: #6c757d;
+            margin-top: 2px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            max-height: 70vh;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+            vertical-align: top;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .category {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            display: inline-block;
+            text-align: center;
+            min-width: 120px;
+        }
+
+        .category.general { background: linear-gradient(135deg, #667eea, #764ba2); }
+        .category.niche { background: linear-gradient(135deg, #28a745, #20c997); }
+        .category.regional { background: linear-gradient(135deg, #fd7e14, #ffc107); }
+        .category.startup { background: linear-gradient(135deg, #e83e8c, #fd7e14); }
+        .category.tech { background: linear-gradient(135deg, #6f42c1, #e83e8c); }
+        .category.social { background: linear-gradient(135deg, #20c997, #17a2b8); }
+        .category.mainstream { background: linear-gradient(135deg, #6c757d, #495057); }
+
+        .link {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .link:hover {
+            color: #764ba2;
+            text-decoration: underline;
+        }
+
+        .description {
+            color: #6c757d;
+            font-size: 0.95rem;
+            line-height: 1.4;
+        }
+
+        tr:hover {
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 50px;
+            color: #6c757d;
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .search-box {
+                width: 100%;
+            }
+
+            .stats {
+                margin-left: 0;
+                justify-content: center;
+            }
+
+            th, td {
+                padding: 10px;
+                font-size: 14px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌐 Remote Job Boards Database</h1>
+            <p>Directorio completo de plataformas de trabajo remoto organizadas por categorías</p>
+        </div>
+
+        <div class="controls">
+            <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="searchInput" placeholder="Buscar por nombre, categoría o descripción...">
+            </div>
+            
+            <select id="categoryFilter" class="filter-select">
+                <option value="">Todas las categorías</option>
+                <option value="General">General</option>
+                <option value="Niche">Especializado</option>
+                <option value="Regional">Regional</option>
+                <option value="Startup">Startups</option>
+                <option value="Tech">Tecnología</option>
+                <option value="Social Good">Impacto Social</option>
+                <option value="Mainstream">General</option>
+            </select>
+
+            <button class="export-btn" onclick="exportToExcel()">
+                📊 Exportar Excel
+            </button>
+
+            <div class="stats">
+                <div class="stat-item">
+                    <span class="stat-number" id="totalCount">0</span>
+                    <span class="stat-label">Total</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" id="visibleCount">0</span>
+                    <span class="stat-label">Visibles</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table id="jobBoardsTable">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Link</th>
+                        <th>Categoría</th>
+                        <th>Descripción</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- Los datos se cargarán aquí -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const jobBoards = [
+            // General Remote Job Boards
+            { name: "NoCommute", link: "https://www.nocommute.co", category: "General", description: "Plataforma especializada en trabajos completamente remotos sin necesidad de desplazamientos." },
+            { name: "FlexJobs", link: "https://www.flexjobs.com", category: "General", description: "Portal líder en empleos flexibles, remotos, freelance y trabajos de medio tiempo verificados." },
+            { name: "Remotiv", link: "https://remotiv.com", category: "General", description: "Plataforma global de empleos remotos con oportunidades en múltiples industrias." },
+            { name: "We Work Remotely", link: "https://weworkremotely.com", category: "General", description: "La mayor comunidad de trabajadores remotos del mundo con ofertas de empleo actualizadas diariamente." },
+            { name: "Dynamite Jobs", link: "https://www.dynamitejobs.com", category: "General", description: "Bolsa de trabajo remoto curada manualmente con empleos de alta calidad en marketing y ventas." },
+            { name: "Jobgether", link: "https://jobgether.com", category: "General", description: "Plataforma europea de empleos remotos y flexibles con enfoque en calidad de vida laboral." },
+            { name: "Working Nomads", link: "https://www.workingnomads.co", category: "General", description: "Lista curada de empleos remotos para nómadas digitales y trabajadores remotos." },
+            { name: "Remote Rocketship", link: "https://remoterocketship.com", category: "General", description: "Newsletter semanal y plataforma con los mejores empleos remotos del mundo." },
+            { name: "4 Day Week", link: "https://4dayweek.io", category: "General", description: "Empleos con semana laboral de 4 días, enfocado en equilibrio vida-trabajo." },
+            { name: "Himalayas", link: "https://himalayas.app", category: "General", description: "Plataforma moderna de empleos remotos con interfaz intuitiva y filtros avanzados." },
+            { name: "RemoteHub", link: "https://remotehub.io", category: "General", description: "Hub centralizado de oportunidades laborales remotas con sistema de alertas personalizadas." },
+            { name: "Virtual Vocations", link: "https://www.virtualvocations.com", category: "General", description: "Plataforma establecida desde 2007 especializada en empleos de teletrabajo verificados." },
+            { name: "DailyRemote", link: "https://dailyremote.com", category: "General", description: "Agregador de empleos remotos con actualizaciones diarias de múltiples fuentes." },
+            { name: "People-First Jobs", link: "https://peoplefirstjobs.com", category: "General", description: "Empleos remotos en empresas que priorizan el bienestar y la cultura de las personas." },
+            { name: "Truly Remote", link: "https://trulyremote.co", category: "General", description: "Empleos 100% remotos verificados sin requisitos de ubicación geográfica." },
+            { name: "Real Work From Anywhere", link: "https://www.realworkfromanywhere.com", category: "General", description: "Empleos auténticamente remotos que permiten trabajar desde cualquier parte del mundo." },
+            { name: "InclusivelyRemote", link: "https://inclusivelyremote.com", category: "General", description: "Plataforma de empleos remotos enfocada en diversidad e inclusión laboral." },
+            { name: "Remote.CO", link: "https://remote.co", category: "General", description: "Una de las plataformas más grandes de empleos remotos con recursos y consejos para trabajadores remotos." },
+            { name: "Just Remote", link: "https://justremote.co", category: "General", description: "Portal simple y efectivo para encontrar empleos remotos de calidad." },
+            { name: "Jobspresso", link: "https://jobspresso.co", category: "General", description: "Empleos remotos curados manualmente en tecnología, marketing y customer success." },
+            { name: "Jobicy", link: "https://jobicy.com", category: "General", description: "Plataforma global de empleos remotos con filtros por ubicación, salario y experiencia." },
+            { name: "JustRemote", link: "https://justremote.co", category: "General", description: "Directorio limpio y organizado de oportunidades laborales remotas." },
+            { name: "Remote Army", link: "https://remotearmy.com", category: "General", description: "Comunidad y plataforma de empleos para el 'ejército' de trabajadores remotos." },
+            { name: "Rat Race Rebellion", link: "https://ratracerebellion.com", category: "General", description: "Recurso confiable para empleos legítimos de trabajo desde casa y remotos." },
+            { name: "Remote Rebellion", link: "https://remoterebellion.com", category: "General", description: "Plataforma para profesionales que buscan liberarse del trabajo tradicional de oficina." },
+            { name: "No Desk", link: "https://nodesk.co", category: "General", description: "Recursos, empleos y herramientas para trabajadores remotos y nómadas digitales." },
+            { name: "Career Vault", link: "https://careervault.io", category: "General", description: "Plataforma premium de empleos remotos con oportunidades de alta calidad." },
+            { name: "Remote Nomad Jobs", link: "https://remotenomad.jobs", category: "General", description: "Empleos remotos específicamente diseñados para el estilo de vida nómada digital." },
+            { name: "Pangian", link: "https://pangian.com", category: "General", description: "Red global de profesionales remotos con oportunidades laborales internacionales." },
+            { name: "Landing.jobs", link: "https://landing.jobs", category: "General", description: "Plataforma europea de empleos tech con muchas oportunidades remotas." },
+            { name: "Worqstrap", link: "https://worqstrap.com", category: "General", description: "Plataforma moderna de empleos remotos con enfoque en startups y scale-ups." },
+            { name: "Arc.dev", link: "https://arc.dev", category: "General", description: "Plataforma para desarrolladores remotos que conecta talento global con empresas." },
+
+            // Niche Remote Job Boards
+            { name: "Remote Healthcare Jobs", link: "https://remotehealthcarejobs.com", category: "Niche", description: "Empleos remotos especializados en el sector salud y healthcare." },
+            { name: "Product Jobs Anywhere", link: "https://productjobsanywhere.com", category: "Niche", description: "Empleos remotos específicos para product managers y roles relacionados con producto." },
+            { name: "The Remote Nurse", link: "https://theremotenurse.com", category: "Niche", description: "Oportunidades laborales remotas específicamente para enfermeras y profesionales de enfermería." },
+            { name: "HRJobs Remote.COM", link: "https://hrjobsremote.com", category: "Niche", description: "Empleos remotos especializados en recursos humanos y gestión de talento." },
+            { name: "RemotePOC.COM", link: "https://remotepoc.com", category: "Niche", description: "Plataforma de empleos remotos enfocada en profesionales de color y diversidad." },
+            { name: "The Mom Project", link: "https://themomproject.com", category: "Niche", description: "Oportunidades laborales flexibles y remotas para madres y mujeres profesionales." },
+            { name: "EdSkip.COM", link: "https://edskip.com", category: "Niche", description: "Empleos remotos en el sector educativo y edtech sin barreras geográficas." },
+
+            // Remote based on region
+            { name: "Remotify Europe", link: "https://remotifyeurope.com", category: "Regional", description: "Empleos remotos específicamente para profesionales ubicados en Europa." },
+            { name: "EU Remote Jobs", link: "https://euremotejobs.com", category: "Regional", description: "Oportunidades laborales remotas para residentes de la Unión Europea." },
+            { name: "Euro Remote Jobs", link: "https://euroremotejobs.com", category: "Regional", description: "Portal de empleos remotos con enfoque en el mercado laboral europeo." },
+            { name: "LATAM Jobs", link: "https://latamjobs.com", category: "Regional", description: "Empleos remotos para profesionales de América Latina y el Caribe." },
+            { name: "Remote Africa", link: "https://remoteafrica.io", category: "Regional", description: "Plataforma de empleos remotos para conectar talento africano con oportunidades globales." },
+            { name: "SEEK Australia", link: "https://www.seek.com.au", category: "Regional", description: "Portal líder de empleos en Australia con sección robusta de trabajo remoto." },
+
+            // Start-Up Focused
+            { name: "Wellfound", link: "https://wellfound.com", category: "Startup", description: "Plataforma líder para empleos en startups, anteriormente conocida como AngelList Talent." },
+            { name: "Y Combinator", link: "https://www.ycombinator.com/jobs", category: "Startup", description: "Empleos en startups del prestigioso acelerador Y Combinator." },
+            { name: "CrunchBoard", link: "https://www.crunchboard.com", category: "Startup", description: "Portal de empleos tech y startups de TechCrunch." },
+            { name: "Startup.jobs", link: "https://startup.jobs", category: "Startup", description: "Plataforma especializada en oportunidades laborales en el ecosistema startup." },
+            { name: "Startups.gallery", link: "https://startups.gallery", category: "Startup", description: "Galería curada de empleos en las startups más prometedoras del mundo." },
+
+            // Tech
+            { name: "Built In", link: "https://builtin.com", category: "Tech", description: "Plataforma líder de empleos tech con comunidades locales en ciudades principales." },
+            { name: "Welcome to the Jungle", link: "https://www.welcometothejungle.com", category: "Tech", description: "Portal europeo de empleos tech con enfoque en cultura empresarial." },
+            { name: "Dice", link: "https://www.dice.com", category: "Tech", description: "Plataforma especializada en empleos de tecnología e ingeniería." },
+            { name: "Flexa", link: "https://flexa.careers", category: "Tech", description: "Empleos tech con transparencia salarial y beneficios de flexibilidad laboral." },
+            { name: "PowerToFly", link: "https://powertofly.com", category: "Tech", description: "Plataforma enfocada en diversidad de género en empleos tech y remotos." },
+            { name: "Dribbble", link: "https://dribbble.com/jobs", category: "Tech", description: "Empleos para diseñadores y creativos en la comunidad global de Dribbble." },
+            { name: "Behance", link: "https://www.behance.net/jobboard", category: "Tech", description: "Portal de empleos creativos y de diseño de Adobe Behance." },
+            { name: "Techstars", link: "https://www.techstars.com/jobs", category: "Tech", description: "Empleos en la red global de startups aceleradas por Techstars." },
+            { name: "Communitech Canada", link: "https://communitech.ca/jobs", category: "Tech", description: "Hub de empleos tech en el ecosistema tecnológico de Canadá." },
+            { name: "Aijobs.ai", link: "https://aijobs.ai", category: "Tech", description: "Empleos especializados en inteligencia artificial y machine learning." },
+
+            // Social Good
+            { name: "Idealist.org", link: "https://www.idealist.org", category: "Social Good", description: "Plataforma líder para empleos en organizaciones sin fines de lucro e impacto social." },
+            { name: "All Tech Is Human", link: "https://alltechishuman.org/jobs", category: "Social Good", description: "Empleos tech enfocados en el impacto humano positivo y ética tecnológica." },
+            { name: "Escape the City", link: "https://www.escapethecity.org", category: "Social Good", description: "Empleos alternativos para profesionales que buscan propósito e impacto." },
+            { name: "Work for Good", link: "https://workforgood.org", category: "Social Good", description: "Oportunidades laborales en organizaciones con misión de impacto social." },
+            { name: "Impact Opportunity", link: "https://impactopportunity.org", category: "Social Good", description: "Portal de empleos para generar impacto social y ambiental positivo." },
+            { name: "Tech Jobs for Good", link: "https://techjobsforgood.com", category: "Social Good", description: "Empleos tecnológicos en organizaciones con propósito social y ambiental." },
+            { name: "Impact Source.ai", link: "https://impactsource.ai", category: "Social Good", description: "IA aplicada para conectar talento con oportunidades de impacto social." },
+            { name: "Theimpactjob.COM", link: "https://theimpactjob.com", category: "Social Good", description: "Plataforma especializada en empleos que generan impacto positivo en el mundo." },
+            { name: "Purpose Jobs", link: "https://purposejobs.com", category: "Social Good", description: "Empleos con propósito en organizaciones que buscan cambio social positivo." },
+
+            // General/Mainstream
+            { name: "LinkedIn", link: "https://www.linkedin.com/jobs", category: "Mainstream", description: "La red profesional más grande del mundo con amplia sección de empleos remotos." },
+            { name: "Glassdoor", link: "https://www.glassdoor.com", category: "Mainstream", description: "Portal de empleos con reviews de empresas y transparencia salarial." },
+            { name: "Indeed", link: "https://www.indeed.com", category: "Mainstream", description: "Uno de los motores de búsqueda de empleo más grandes del mundo." },
+            { name: "HiringCafe", link: "https://hiringcafe.com", category: "Mainstream", description: "Plataforma de empleos con enfoque en conectar candidatos con empleadores." },
+            { name: "Ladders", link: "https://www.theladders.com", category: "Mainstream", description: "Empleos ejecutivos y profesionales de alto nivel con salarios superiores." },
+            { name: "CareerBuilder", link: "https://www.careerbuilder.com", category: "Mainstream", description: "Una de las plataformas de empleo más establecidas con amplia base de datos." },
+            { name: "Monster", link: "https://www.monster.com", category: "Mainstream", description: "Portal de empleos global con herramientas de búsqueda y desarrollo profesional." }
+        ];
+
+        let filteredData = [...jobBoards];
+
+        function renderTable() {
+            const tbody = document.getElementById('tableBody');
+            
+            if (filteredData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="no-results">No se encontraron resultados para la búsqueda actual.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = filteredData.map(job => `
+                <tr>
+                    <td><strong>${job.name}</strong></td>
+                    <td><a href="${job.link}" target="_blank" class="link">${job.link} 🔗</a></td>
+                    <td><span class="category ${job.category.toLowerCase().replace(' ', '')}">${job.category}</span></td>
+                    <td class="description">${job.description}</td>
+                </tr>
+            `).join('');
+
+            updateStats();
+        }
+
+        function updateStats() {
+            document.getElementById('totalCount').textContent = jobBoards.length;
+            document.getElementById('visibleCount').textContent = filteredData.length;
+        }
+
+        function filterData() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const categoryFilter = document.getElementById('categoryFilter').value;
+
+            filteredData = jobBoards.filter(job => {
+                const matchesSearch = job.name.toLowerCase().includes(searchTerm) ||
+                                   job.category.toLowerCase().includes(searchTerm) ||
+                                   job.description.toLowerCase().includes(searchTerm);
+                                   
+                const matchesCategory = !categoryFilter || job.category === categoryFilter;
+                
+                return matchesSearch && matchesCategory;
+            });
+
+            renderTable();
+        }
+
+        function exportToExcel() {
+            // Crear contenido CSV
+            const headers = ['Nombre', 'Link', 'Categoría', 'Descripción'];
+            const csvContent = [
+                headers.join(','),
+                ...filteredData.map(job => [
+                    `"${job.name}"`,
+                    `"${job.link}"`,
+                    `"${job.category}"`,
+                    `"${job.description}"`
+                ].join(','))
+            ].join('\n');
+
+            // Crear y descargar archivo
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'remote_job_boards.csv');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Event listeners
+        document.getElementById('searchInput').addEventListener('input', filterData);
+        document.getElementById('categoryFilter').addEventListener('change', filterData);
+
+        // Initial render
+        renderTable();
+    </script>
+</body>
+</html>
