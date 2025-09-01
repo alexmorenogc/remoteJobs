@@ -20,6 +20,10 @@ This web application displays an interactive database of remote job portals, gro
 2. Use the search bar and category filter to explore the platforms.
 3. Click "Export Excel" to download the filtered results.
 
+## Demo
+
+You can access a live demo at [alexmorenogc.github.io](https://alexmorenogc.github.io).
+
 ## Project Structure
 
 - [`index.html`](index.html): Main source code of the web application.
