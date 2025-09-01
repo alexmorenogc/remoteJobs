@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -184,7 +184,7 @@
         .category.regional { background: linear-gradient(135deg, #fd7e14, #ffc107); }
         .category.startup { background: linear-gradient(135deg, #e83e8c, #fd7e14); }
         .category.tech { background: linear-gradient(135deg, #6f42c1, #e83e8c); }
-        .category.social { background: linear-gradient(135deg, #20c997, #17a2b8); }
+        .category.socialgood { background: linear-gradient(135deg, #20c997, #17a2b8); }
         .category.mainstream { background: linear-gradient(135deg, #6c757d, #495057); }
 
         .link {
@@ -247,39 +247,44 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🌐 Remote Job Boards Database</h1>
-            <p>Directorio completo de plataformas de trabajo remoto organizadas por categorías</p>
+            <h1 id="mainTitle">🌐 Remote Job Boards Database</h1>
+            <p id="mainSubtitle">Complete directory of remote work platforms organized by categories</p>
         </div>
 
         <div class="controls">
             <div class="search-box">
                 <span class="search-icon">🔍</span>
-                <input type="text" id="searchInput" placeholder="Buscar por nombre, categoría o descripción...">
+                <input type="text" id="searchInput" placeholder="Search by name, category or description...">
             </div>
             
             <select id="categoryFilter" class="filter-select">
-                <option value="">Todas las categorías</option>
+                <option value="">All categories</option>
                 <option value="General">General</option>
-                <option value="Niche">Especializado</option>
+                <option value="Niche">Specialized</option>
                 <option value="Regional">Regional</option>
                 <option value="Startup">Startups</option>
-                <option value="Tech">Tecnología</option>
-                <option value="Social Good">Impacto Social</option>
+                <option value="Tech">Technology</option>
+                <option value="Social Good">Social Impact</option>
                 <option value="Mainstream">General</option>
             </select>
 
+            <select id="languageSelector" class="filter-select">
+                <option value="en">🇺🇸 English</option>
+                <option value="es">🇪🇸 Español</option>
+            </select>
+
             <button class="export-btn" onclick="exportToExcel()">
-                📊 Exportar Excel
+                📊 <span id="exportText">Export Excel</span>
             </button>
 
             <div class="stats">
                 <div class="stat-item">
                     <span class="stat-number" id="totalCount">0</span>
-                    <span class="stat-label">Total</span>
+                    <span class="stat-label" id="totalLabel">Total</span>
                 </div>
                 <div class="stat-item">
                     <span class="stat-number" id="visibleCount">0</span>
-                    <span class="stat-label">Visibles</span>
+                    <span class="stat-label" id="visibleLabel">Visible</span>
                 </div>
             </div>
         </div>
@@ -288,119 +293,802 @@
             <table id="jobBoardsTable">
                 <thead>
                     <tr>
-                        <th>Nombre</th>
-                        <th>Link</th>
-                        <th>Categoría</th>
-                        <th>Descripción</th>
+                        <th id="nameHeader">Name</th>
+                        <th id="linkHeader">Link</th>
+                        <th id="categoryHeader">Category</th>
+                        <th id="descriptionHeader">Description</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody">
-                    <!-- Los datos se cargarán aquí -->
+                    <!-- Data will be loaded here -->
                 </tbody>
             </table>
         </div>
     </div>
 
     <script>
+        // Language translations
+        const translations = {
+            en: {
+                mainTitle: "🌐 Remote Job Boards Database",
+                mainSubtitle: "Complete directory of remote work platforms organized by categories",
+                searchPlaceholder: "Search by name, category or description...",
+                allCategories: "All categories",
+                categoryGeneral: "General",
+                categoryNiche: "Specialized",
+                categoryRegional: "Regional",
+                categoryStartup: "Startups",
+                categoryTech: "Technology",
+                categorySocialGood: "Social Impact",
+                categoryMainstream: "General",
+                exportText: "Export Excel",
+                totalLabel: "Total",
+                visibleLabel: "Visible",
+                nameHeader: "Name",
+                linkHeader: "Link",
+                categoryHeader: "Category",
+                descriptionHeader: "Description",
+                noResults: "No results found for the current search."
+            },
+            es: {
+                mainTitle: "🌐 Base de Datos de Portales de Trabajo Remoto",
+                mainSubtitle: "Directorio completo de plataformas de trabajo remoto organizadas por categorías",
+                searchPlaceholder: "Buscar por nombre, categoría o descripción...",
+                allCategories: "Todas las categorías",
+                categoryGeneral: "General",
+                categoryNiche: "Especializado",
+                categoryRegional: "Regional",
+                categoryStartup: "Startups",
+                categoryTech: "Tecnología",
+                categorySocialGood: "Impacto Social",
+                categoryMainstream: "General",
+                exportText: "Exportar Excel",
+                totalLabel: "Total",
+                visibleLabel: "Visibles",
+                nameHeader: "Nombre",
+                linkHeader: "Enlace",
+                categoryHeader: "Categoría",
+                descriptionHeader: "Descripción",
+                noResults: "No se encontraron resultados para la búsqueda actual."
+            }
+        };
+
+        let currentLanguage = 'en'; // Default to English
+
         const jobBoards = [
             // General Remote Job Boards
-            { name: "NoCommute", link: "https://www.nocommute.co", category: "General", description: "Plataforma especializada en trabajos completamente remotos sin necesidad de desplazamientos." },
-            { name: "FlexJobs", link: "https://www.flexjobs.com", category: "General", description: "Portal líder en empleos flexibles, remotos, freelance y trabajos de medio tiempo verificados." },
-            { name: "Remotiv", link: "https://remotiv.com", category: "General", description: "Plataforma global de empleos remotos con oportunidades en múltiples industrias." },
-            { name: "We Work Remotely", link: "https://weworkremotely.com", category: "General", description: "La mayor comunidad de trabajadores remotos del mundo con ofertas de empleo actualizadas diariamente." },
-            { name: "Dynamite Jobs", link: "https://www.dynamitejobs.com", category: "General", description: "Bolsa de trabajo remoto curada manualmente con empleos de alta calidad en marketing y ventas." },
-            { name: "Jobgether", link: "https://jobgether.com", category: "General", description: "Plataforma europea de empleos remotos y flexibles con enfoque en calidad de vida laboral." },
-            { name: "Working Nomads", link: "https://www.workingnomads.co", category: "General", description: "Lista curada de empleos remotos para nómadas digitales y trabajadores remotos." },
-            { name: "Remote Rocketship", link: "https://remoterocketship.com", category: "General", description: "Newsletter semanal y plataforma con los mejores empleos remotos del mundo." },
-            { name: "4 Day Week", link: "https://4dayweek.io", category: "General", description: "Empleos con semana laboral de 4 días, enfocado en equilibrio vida-trabajo." },
-            { name: "Himalayas", link: "https://himalayas.app", category: "General", description: "Plataforma moderna de empleos remotos con interfaz intuitiva y filtros avanzados." },
-            { name: "RemoteHub", link: "https://remotehub.io", category: "General", description: "Hub centralizado de oportunidades laborales remotas con sistema de alertas personalizadas." },
-            { name: "Virtual Vocations", link: "https://www.virtualvocations.com", category: "General", description: "Plataforma establecida desde 2007 especializada en empleos de teletrabajo verificados." },
-            { name: "DailyRemote", link: "https://dailyremote.com", category: "General", description: "Agregador de empleos remotos con actualizaciones diarias de múltiples fuentes." },
-            { name: "People-First Jobs", link: "https://peoplefirstjobs.com", category: "General", description: "Empleos remotos en empresas que priorizan el bienestar y la cultura de las personas." },
-            { name: "Truly Remote", link: "https://trulyremote.co", category: "General", description: "Empleos 100% remotos verificados sin requisitos de ubicación geográfica." },
-            { name: "Real Work From Anywhere", link: "https://www.realworkfromanywhere.com", category: "General", description: "Empleos auténticamente remotos que permiten trabajar desde cualquier parte del mundo." },
-            { name: "InclusivelyRemote", link: "https://inclusivelyremote.com", category: "General", description: "Plataforma de empleos remotos enfocada en diversidad e inclusión laboral." },
-            { name: "Remote.CO", link: "https://remote.co", category: "General", description: "Una de las plataformas más grandes de empleos remotos con recursos y consejos para trabajadores remotos." },
-            { name: "Just Remote", link: "https://justremote.co", category: "General", description: "Portal simple y efectivo para encontrar empleos remotos de calidad." },
-            { name: "Jobspresso", link: "https://jobspresso.co", category: "General", description: "Empleos remotos curados manualmente en tecnología, marketing y customer success." },
-            { name: "Jobicy", link: "https://jobicy.com", category: "General", description: "Plataforma global de empleos remotos con filtros por ubicación, salario y experiencia." },
-            { name: "JustRemote", link: "https://justremote.co", category: "General", description: "Directorio limpio y organizado de oportunidades laborales remotas." },
-            { name: "Remote Army", link: "https://remotearmy.com", category: "General", description: "Comunidad y plataforma de empleos para el 'ejército' de trabajadores remotos." },
-            { name: "Rat Race Rebellion", link: "https://ratracerebellion.com", category: "General", description: "Recurso confiable para empleos legítimos de trabajo desde casa y remotos." },
-            { name: "Remote Rebellion", link: "https://remoterebellion.com", category: "General", description: "Plataforma para profesionales que buscan liberarse del trabajo tradicional de oficina." },
-            { name: "No Desk", link: "https://nodesk.co", category: "General", description: "Recursos, empleos y herramientas para trabajadores remotos y nómadas digitales." },
-            { name: "Career Vault", link: "https://careervault.io", category: "General", description: "Plataforma premium de empleos remotos con oportunidades de alta calidad." },
-            { name: "Remote Nomad Jobs", link: "https://remotenomad.jobs", category: "General", description: "Empleos remotos específicamente diseñados para el estilo de vida nómada digital." },
-            { name: "Pangian", link: "https://pangian.com", category: "General", description: "Red global de profesionales remotos con oportunidades laborales internacionales." },
-            { name: "Landing.jobs", link: "https://landing.jobs", category: "General", description: "Plataforma europea de empleos tech con muchas oportunidades remotas." },
-            { name: "Worqstrap", link: "https://worqstrap.com", category: "General", description: "Plataforma moderna de empleos remotos con enfoque en startups y scale-ups." },
-            { name: "Arc.dev", link: "https://arc.dev", category: "General", description: "Plataforma para desarrolladores remotos que conecta talento global con empresas." },
+            { 
+                name: "NoCommute", 
+                link: "https://www.nocommute.co", 
+                category: "General", 
+                description: {
+                    en: "Platform specialized in fully remote jobs with no commuting required.",
+                    es: "Plataforma especializada en trabajos completamente remotos sin necesidad de desplazamientos."
+                }
+            },
+            { 
+                name: "FlexJobs", 
+                link: "https://www.flexjobs.com", 
+                category: "General", 
+                description: {
+                    en: "Leading platform for verified flexible, remote, freelance and part-time jobs.",
+                    es: "Portal líder en empleos flexibles, remotos, freelance y trabajos de medio tiempo verificados."
+                }
+            },
+            { 
+                name: "Remotiv", 
+                link: "https://remotiv.com", 
+                category: "General", 
+                description: {
+                    en: "Global remote job platform with opportunities across multiple industries.",
+                    es: "Plataforma global de empleos remotos con oportunidades en múltiples industrias."
+                }
+            },
+            { 
+                name: "We Work Remotely", 
+                link: "https://weworkremotely.com", 
+                category: "General", 
+                description: {
+                    en: "The world's largest remote work community with daily updated job listings.",
+                    es: "La mayor comunidad de trabajadores remotos del mundo con ofertas de empleo actualizadas diariamente."
+                }
+            },
+            { 
+                name: "Dynamite Jobs", 
+                link: "https://www.dynamitejobs.com", 
+                category: "General", 
+                description: {
+                    en: "Hand-curated remote job board with high-quality jobs in marketing and sales.",
+                    es: "Bolsa de trabajo remoto curada manualmente con empleos de alta calidad en marketing y ventas."
+                }
+            },
+            { 
+                name: "Jobgether", 
+                link: "https://jobgether.com", 
+                category: "General", 
+                description: {
+                    en: "European platform for remote and flexible jobs focused on work-life quality.",
+                    es: "Plataforma europea de empleos remotos y flexibles con enfoque en calidad de vida laboral."
+                }
+            },
+            { 
+                name: "Working Nomads", 
+                link: "https://www.workingnomads.co", 
+                category: "General", 
+                description: {
+                    en: "Curated list of remote jobs for digital nomads and remote workers.",
+                    es: "Lista curada de empleos remotos para nómadas digitales y trabajadores remotos."
+                }
+            },
+            { 
+                name: "Remote Rocketship", 
+                link: "https://remoterocketship.com", 
+                category: "General", 
+                description: {
+                    en: "Weekly newsletter and platform with the best remote jobs worldwide.",
+                    es: "Newsletter semanal y plataforma con los mejores empleos remotos del mundo."
+                }
+            },
+            { 
+                name: "4 Day Week", 
+                link: "https://4dayweek.io", 
+                category: "General", 
+                description: {
+                    en: "Jobs with 4-day work week, focused on work-life balance.",
+                    es: "Empleos con semana laboral de 4 días, enfocado en equilibrio vida-trabajo."
+                }
+            },
+            { 
+                name: "Himalayas", 
+                link: "https://himalayas.app", 
+                category: "General", 
+                description: {
+                    en: "Modern remote job platform with intuitive interface and advanced filters.",
+                    es: "Plataforma moderna de empleos remotos con interfaz intuitiva y filtros avanzados."
+                }
+            },
+            { 
+                name: "RemoteHub", 
+                link: "https://remotehub.io", 
+                category: "General", 
+                description: {
+                    en: "Centralized hub of remote job opportunities with personalized alert system.",
+                    es: "Hub centralizado de oportunidades laborales remotas con sistema de alertas personalizadas."
+                }
+            },
+            { 
+                name: "Virtual Vocations", 
+                link: "https://www.virtualvocations.com", 
+                category: "General", 
+                description: {
+                    en: "Platform established since 2007 specialized in verified telecommute jobs.",
+                    es: "Plataforma establecida desde 2007 especializada en empleos de teletrabajo verificados."
+                }
+            },
+            { 
+                name: "DailyRemote", 
+                link: "https://dailyremote.com", 
+                category: "General", 
+                description: {
+                    en: "Remote job aggregator with daily updates from multiple sources.",
+                    es: "Agregador de empleos remotos con actualizaciones diarias de múltiples fuentes."
+                }
+            },
+            { 
+                name: "People-First Jobs", 
+                link: "https://peoplefirstjobs.com", 
+                category: "General", 
+                description: {
+                    en: "Remote jobs at companies that prioritize employee wellbeing and culture.",
+                    es: "Empleos remotos en empresas que priorizan el bienestar y la cultura de las personas."
+                }
+            },
+            { 
+                name: "Truly Remote", 
+                link: "https://trulyremote.co", 
+                category: "General", 
+                description: {
+                    en: "100% verified remote jobs with no geographical location requirements.",
+                    es: "Empleos 100% remotos verificados sin requisitos de ubicación geográfica."
+                }
+            },
+            { 
+                name: "Real Work From Anywhere", 
+                link: "https://www.realworkfromanywhere.com", 
+                category: "General", 
+                description: {
+                    en: "Authentically remote jobs that allow working from anywhere in the world.",
+                    es: "Empleos auténticamente remotos que permiten trabajar desde cualquier parte del mundo."
+                }
+            },
+            { 
+                name: "InclusivelyRemote", 
+                link: "https://inclusivelyremote.com", 
+                category: "General", 
+                description: {
+                    en: "Remote job platform focused on workplace diversity and inclusion.",
+                    es: "Plataforma de empleos remotos enfocada en diversidad e inclusión laboral."
+                }
+            },
+            { 
+                name: "Remote.CO", 
+                link: "https://remote.co", 
+                category: "General", 
+                description: {
+                    en: "One of the largest remote job platforms with resources and tips for remote workers.",
+                    es: "Una de las plataformas más grandes de empleos remotos con recursos y consejos para trabajadores remotos."
+                }
+            },
+            { 
+                name: "Just Remote", 
+                link: "https://justremote.co", 
+                category: "General", 
+                description: {
+                    en: "Simple and effective portal for finding quality remote jobs.",
+                    es: "Portal simple y efectivo para encontrar empleos remotos de calidad."
+                }
+            },
+            { 
+                name: "Jobspresso", 
+                link: "https://jobspresso.co", 
+                category: "General", 
+                description: {
+                    en: "Hand-curated remote jobs in technology, marketing, and customer success.",
+                    es: "Empleos remotos curados manualmente en tecnología, marketing y customer success."
+                }
+            },
+            { 
+                name: "Jobicy", 
+                link: "https://jobicy.com", 
+                category: "General", 
+                description: {
+                    en: "Global remote job platform with filters by location, salary, and experience.",
+                    es: "Plataforma global de empleos remotos con filtros por ubicación, salario y experiencia."
+                }
+            },
+            { 
+                name: "Remote Army", 
+                link: "https://remotearmy.com", 
+                category: "General", 
+                description: {
+                    en: "Community and job platform for the remote work 'army'.",
+                    es: "Comunidad y plataforma de empleos para el 'ejército' de trabajadores remotos."
+                }
+            },
+            { 
+                name: "Rat Race Rebellion", 
+                link: "https://ratracerebellion.com", 
+                category: "General", 
+                description: {
+                    en: "Trusted resource for legitimate work-from-home and remote jobs.",
+                    es: "Recurso confiable para empleos legítimos de trabajo desde casa y remotos."
+                }
+            },
+            { 
+                name: "Remote Rebellion", 
+                link: "https://remoterebellion.com", 
+                category: "General", 
+                description: {
+                    en: "Platform for professionals looking to break free from traditional office work.",
+                    es: "Plataforma para profesionales que buscan liberarse del trabajo tradicional de oficina."
+                }
+            },
+            { 
+                name: "No Desk", 
+                link: "https://nodesk.co", 
+                category: "General", 
+                description: {
+                    en: "Resources, jobs, and tools for remote workers and digital nomads.",
+                    es: "Recursos, empleos y herramientas para trabajadores remotos y nómadas digitales."
+                }
+            },
+            { 
+                name: "Career Vault", 
+                link: "https://careervault.io", 
+                category: "General", 
+                description: {
+                    en: "Premium remote job platform with high-quality opportunities.",
+                    es: "Plataforma premium de empleos remotos con oportunidades de alta calidad."
+                }
+            },
+            { 
+                name: "Remote Nomad Jobs", 
+                link: "https://remotenomad.jobs", 
+                category: "General", 
+                description: {
+                    en: "Remote jobs specifically designed for the digital nomad lifestyle.",
+                    es: "Empleos remotos específicamente diseñados para el estilo de vida nómada digital."
+                }
+            },
+            { 
+                name: "Pangian", 
+                link: "https://pangian.com", 
+                category: "General", 
+                description: {
+                    en: "Global network of remote professionals with international job opportunities.",
+                    es: "Red global de profesionales remotos con oportunidades laborales internacionales."
+                }
+            },
+            { 
+                name: "Landing.jobs", 
+                link: "https://landing.jobs", 
+                category: "General", 
+                description: {
+                    en: "European tech job platform with many remote opportunities.",
+                    es: "Plataforma europea de empleos tech con muchas oportunidades remotas."
+                }
+            },
+            { 
+                name: "Worqstrap", 
+                link: "https://worqstrap.com", 
+                category: "General", 
+                description: {
+                    en: "Modern remote job platform focused on startups and scale-ups.",
+                    es: "Plataforma moderna de empleos remotos con enfoque en startups y scale-ups."
+                }
+            },
+            { 
+                name: "Arc.dev", 
+                link: "https://arc.dev", 
+                category: "General", 
+                description: {
+                    en: "Platform for remote developers connecting global talent with companies.",
+                    es: "Plataforma para desarrolladores remotos que conecta talento global con empresas."
+                }
+            },
 
             // Niche Remote Job Boards
-            { name: "Remote Healthcare Jobs", link: "https://remotehealthcarejobs.com", category: "Niche", description: "Empleos remotos especializados en el sector salud y healthcare." },
-            { name: "Product Jobs Anywhere", link: "https://productjobsanywhere.com", category: "Niche", description: "Empleos remotos específicos para product managers y roles relacionados con producto." },
-            { name: "The Remote Nurse", link: "https://theremotenurse.com", category: "Niche", description: "Oportunidades laborales remotas específicamente para enfermeras y profesionales de enfermería." },
-            { name: "HRJobs Remote.COM", link: "https://hrjobsremote.com", category: "Niche", description: "Empleos remotos especializados en recursos humanos y gestión de talento." },
-            { name: "RemotePOC.COM", link: "https://remotepoc.com", category: "Niche", description: "Plataforma de empleos remotos enfocada en profesionales de color y diversidad." },
-            { name: "The Mom Project", link: "https://themomproject.com", category: "Niche", description: "Oportunidades laborales flexibles y remotas para madres y mujeres profesionales." },
-            { name: "EdSkip.COM", link: "https://edskip.com", category: "Niche", description: "Empleos remotos en el sector educativo y edtech sin barreras geográficas." },
+            { 
+                name: "Remote Healthcare Jobs", 
+                link: "https://remotehealthcarejobs.com", 
+                category: "Niche", 
+                description: {
+                    en: "Remote jobs specialized in healthcare and medical sector.",
+                    es: "Empleos remotos especializados en el sector salud y healthcare."
+                }
+            },
+            { 
+                name: "Product Jobs Anywhere", 
+                link: "https://productjobsanywhere.com", 
+                category: "Niche", 
+                description: {
+                    en: "Remote jobs specifically for product managers and product-related roles.",
+                    es: "Empleos remotos específicos para product managers y roles relacionados con producto."
+                }
+            },
+            { 
+                name: "The Remote Nurse", 
+                link: "https://theremotenurse.com", 
+                category: "Niche", 
+                description: {
+                    en: "Remote job opportunities specifically for nurses and nursing professionals.",
+                    es: "Oportunidades laborales remotas específicamente para enfermeras y profesionales de enfermería."
+                }
+            },
+            { 
+                name: "HRJobs Remote.COM", 
+                link: "https://hrjobsremote.com", 
+                category: "Niche", 
+                description: {
+                    en: "Remote jobs specialized in human resources and talent management.",
+                    es: "Empleos remotos especializados en recursos humanos y gestión de talento."
+                }
+            },
+            { 
+                name: "RemotePOC.COM", 
+                link: "https://remotepoc.com", 
+                category: "Niche", 
+                description: {
+                    en: "Remote job platform focused on professionals of color and diversity.",
+                    es: "Plataforma de empleos remotos enfocada en profesionales de color y diversidad."
+                }
+            },
+            { 
+                name: "The Mom Project", 
+                link: "https://themomproject.com", 
+                category: "Niche", 
+                description: {
+                    en: "Flexible and remote job opportunities for mothers and professional women.",
+                    es: "Oportunidades laborales flexibles y remotas para madres y mujeres profesionales."
+                }
+            },
+            { 
+                name: "EdSkip.COM", 
+                link: "https://edskip.com", 
+                category: "Niche", 
+                description: {
+                    en: "Remote jobs in the education sector and edtech without geographical barriers.",
+                    es: "Empleos remotos en el sector educativo y edtech sin barreras geográficas."
+                }
+            },
 
             // Remote based on region
-            { name: "Remotify Europe", link: "https://remotifyeurope.com", category: "Regional", description: "Empleos remotos específicamente para profesionales ubicados en Europa." },
-            { name: "EU Remote Jobs", link: "https://euremotejobs.com", category: "Regional", description: "Oportunidades laborales remotas para residentes de la Unión Europea." },
-            { name: "Euro Remote Jobs", link: "https://euroremotejobs.com", category: "Regional", description: "Portal de empleos remotos con enfoque en el mercado laboral europeo." },
-            { name: "LATAM Jobs", link: "https://latamjobs.com", category: "Regional", description: "Empleos remotos para profesionales de América Latina y el Caribe." },
-            { name: "Remote Africa", link: "https://remoteafrica.io", category: "Regional", description: "Plataforma de empleos remotos para conectar talento africano con oportunidades globales." },
-            { name: "SEEK Australia", link: "https://www.seek.com.au", category: "Regional", description: "Portal líder de empleos en Australia con sección robusta de trabajo remoto." },
+            { 
+                name: "Remotify Europe", 
+                link: "https://remotifyeurope.com", 
+                category: "Regional", 
+                description: {
+                    en: "Remote jobs specifically for professionals located in Europe.",
+                    es: "Empleos remotos específicamente para profesionales ubicados en Europa."
+                }
+            },
+            { 
+                name: "EU Remote Jobs", 
+                link: "https://euremotejobs.com", 
+                category: "Regional", 
+                description: {
+                    en: "Remote job opportunities for European Union residents.",
+                    es: "Oportunidades laborales remotas para residentes de la Unión Europea."
+                }
+            },
+            { 
+                name: "Euro Remote Jobs", 
+                link: "https://euroremotejobs.com", 
+                category: "Regional", 
+                description: {
+                    en: "Remote job portal focused on the European labor market.",
+                    es: "Portal de empleos remotos con enfoque en el mercado laboral europeo."
+                }
+            },
+            { 
+                name: "LATAM Jobs", 
+                link: "https://latamjobs.com", 
+                category: "Regional", 
+                description: {
+                    en: "Remote jobs for professionals from Latin America and the Caribbean.",
+                    es: "Empleos remotos para profesionales de América Latina y el Caribe."
+                }
+            },
+            { 
+                name: "Remote Africa", 
+                link: "https://remoteafrica.io", 
+                category: "Regional", 
+                description: {
+                    en: "Remote job platform connecting African talent with global opportunities.",
+                    es: "Plataforma de empleos remotos para conectar talento africano con oportunidades globales."
+                }
+            },
+            { 
+                name: "SEEK Australia", 
+                link: "https://www.seek.com.au", 
+                category: "Regional", 
+                description: {
+                    en: "Leading job portal in Australia with robust remote work section.",
+                    es: "Portal líder de empleos en Australia con sección robusta de trabajo remoto."
+                }
+            },
 
             // Start-Up Focused
-            { name: "Wellfound", link: "https://wellfound.com", category: "Startup", description: "Plataforma líder para empleos en startups, anteriormente conocida como AngelList Talent." },
-            { name: "Y Combinator", link: "https://www.ycombinator.com/jobs", category: "Startup", description: "Empleos en startups del prestigioso acelerador Y Combinator." },
-            { name: "CrunchBoard", link: "https://www.crunchboard.com", category: "Startup", description: "Portal de empleos tech y startups de TechCrunch." },
-            { name: "Startup.jobs", link: "https://startup.jobs", category: "Startup", description: "Plataforma especializada en oportunidades laborales en el ecosistema startup." },
-            { name: "Startups.gallery", link: "https://startups.gallery", category: "Startup", description: "Galería curada de empleos en las startups más prometedoras del mundo." },
+            { 
+                name: "Wellfound", 
+                link: "https://wellfound.com", 
+                category: "Startup", 
+                description: {
+                    en: "Leading platform for startup jobs, formerly known as AngelList Talent.",
+                    es: "Plataforma líder para empleos en startups, anteriormente conocida como AngelList Talent."
+                }
+            },
+            { 
+                name: "Y Combinator", 
+                link: "https://www.ycombinator.com/jobs", 
+                category: "Startup", 
+                description: {
+                    en: "Jobs at startups from the prestigious Y Combinator accelerator.",
+                    es: "Empleos en startups del prestigioso acelerador Y Combinator."
+                }
+            },
+            { 
+                name: "CrunchBoard", 
+                link: "https://www.crunchboard.com", 
+                category: "Startup", 
+                description: {
+                    en: "Tech and startup job portal from TechCrunch.",
+                    es: "Portal de empleos tech y startups de TechCrunch."
+                }
+            },
+            { 
+                name: "Startup.jobs", 
+                link: "https://startup.jobs", 
+                category: "Startup", 
+                description: {
+                    en: "Platform specialized in job opportunities in the startup ecosystem.",
+                    es: "Plataforma especializada en oportunidades laborales en el ecosistema startup."
+                }
+            },
+            { 
+                name: "Startups.gallery", 
+                link: "https://startups.gallery", 
+                category: "Startup", 
+                description: {
+                    en: "Curated gallery of jobs at the world's most promising startups.",
+                    es: "Galería curada de empleos en las startups más prometedoras del mundo."
+                }
+            },
 
             // Tech
-            { name: "Built In", link: "https://builtin.com", category: "Tech", description: "Plataforma líder de empleos tech con comunidades locales en ciudades principales." },
-            { name: "Welcome to the Jungle", link: "https://www.welcometothejungle.com", category: "Tech", description: "Portal europeo de empleos tech con enfoque en cultura empresarial." },
-            { name: "Dice", link: "https://www.dice.com", category: "Tech", description: "Plataforma especializada en empleos de tecnología e ingeniería." },
-            { name: "Flexa", link: "https://flexa.careers", category: "Tech", description: "Empleos tech con transparencia salarial y beneficios de flexibilidad laboral." },
-            { name: "PowerToFly", link: "https://powertofly.com", category: "Tech", description: "Plataforma enfocada en diversidad de género en empleos tech y remotos." },
-            { name: "Dribbble", link: "https://dribbble.com/jobs", category: "Tech", description: "Empleos para diseñadores y creativos en la comunidad global de Dribbble." },
-            { name: "Behance", link: "https://www.behance.net/jobboard", category: "Tech", description: "Portal de empleos creativos y de diseño de Adobe Behance." },
-            { name: "Techstars", link: "https://www.techstars.com/jobs", category: "Tech", description: "Empleos en la red global de startups aceleradas por Techstars." },
-            { name: "Communitech Canada", link: "https://communitech.ca/jobs", category: "Tech", description: "Hub de empleos tech en el ecosistema tecnológico de Canadá." },
-            { name: "Aijobs.ai", link: "https://aijobs.ai", category: "Tech", description: "Empleos especializados en inteligencia artificial y machine learning." },
+            { 
+                name: "Built In", 
+                link: "https://builtin.com", 
+                category: "Tech", 
+                description: {
+                    en: "Leading tech job platform with local communities in major cities.",
+                    es: "Plataforma líder de empleos tech con comunidades locales en ciudades principales."
+                }
+            },
+            { 
+                name: "Welcome to the Jungle", 
+                link: "https://www.welcometothejungle.com", 
+                category: "Tech", 
+                description: {
+                    en: "European tech job portal focused on company culture.",
+                    es: "Portal europeo de empleos tech con enfoque en cultura empresarial."
+                }
+            },
+            { 
+                name: "Dice", 
+                link: "https://www.dice.com", 
+                category: "Tech", 
+                description: {
+                    en: "Platform specialized in technology and engineering jobs.",
+                    es: "Plataforma especializada en empleos de tecnología e ingeniería."
+                }
+            },
+            { 
+                name: "Flexa", 
+                link: "https://flexa.careers", 
+                category: "Tech", 
+                description: {
+                    en: "Tech jobs with salary transparency and work flexibility benefits.",
+                    es: "Empleos tech con transparencia salarial y beneficios de flexibilidad laboral."
+                }
+            },
+            { 
+                name: "PowerToFly", 
+                link: "https://powertofly.com", 
+                category: "Tech", 
+                description: {
+                    en: "Platform focused on gender diversity in tech and remote jobs.",
+                    es: "Plataforma enfocada en diversidad de género en empleos tech y remotos."
+                }
+            },
+            { 
+                name: "Dribbble", 
+                link: "https://dribbble.com/jobs", 
+                category: "Tech", 
+                description: {
+                    en: "Jobs for designers and creatives in Dribbble's global community.",
+                    es: "Empleos para diseñadores y creativos en la comunidad global de Dribbble."
+                }
+            },
+            { 
+                name: "Behance", 
+                link: "https://www.behance.net/jobboard", 
+                category: "Tech", 
+                description: {
+                    en: "Creative and design job portal from Adobe Behance.",
+                    es: "Portal de empleos creativos y de diseño de Adobe Behance."
+                }
+            },
+            { 
+                name: "Techstars", 
+                link: "https://www.techstars.com/jobs", 
+                category: "Tech", 
+                description: {
+                    en: "Jobs in the global network of Techstars-accelerated startups.",
+                    es: "Empleos en la red global de startups aceleradas por Techstars."
+                }
+            },
+            { 
+                name: "Communitech Canada", 
+                link: "https://communitech.ca/jobs", 
+                category: "Tech", 
+                description: {
+                    en: "Tech job hub in Canada's technology ecosystem.",
+                    es: "Hub de empleos tech en el ecosistema tecnológico de Canadá."
+                }
+            },
+            { 
+                name: "Aijobs.ai", 
+                link: "https://aijobs.ai", 
+                category: "Tech", 
+                description: {
+                    en: "Jobs specialized in artificial intelligence and machine learning.",
+                    es: "Empleos especializados en inteligencia artificial y machine learning."
+                }
+            },
 
             // Social Good
-            { name: "Idealist.org", link: "https://www.idealist.org", category: "Social Good", description: "Plataforma líder para empleos en organizaciones sin fines de lucro e impacto social." },
-            { name: "All Tech Is Human", link: "https://alltechishuman.org/jobs", category: "Social Good", description: "Empleos tech enfocados en el impacto humano positivo y ética tecnológica." },
-            { name: "Escape the City", link: "https://www.escapethecity.org", category: "Social Good", description: "Empleos alternativos para profesionales que buscan propósito e impacto." },
-            { name: "Work for Good", link: "https://workforgood.org", category: "Social Good", description: "Oportunidades laborales en organizaciones con misión de impacto social." },
-            { name: "Impact Opportunity", link: "https://impactopportunity.org", category: "Social Good", description: "Portal de empleos para generar impacto social y ambiental positivo." },
-            { name: "Tech Jobs for Good", link: "https://techjobsforgood.com", category: "Social Good", description: "Empleos tecnológicos en organizaciones con propósito social y ambiental." },
-            { name: "Impact Source.ai", link: "https://impactsource.ai", category: "Social Good", description: "IA aplicada para conectar talento con oportunidades de impacto social." },
-            { name: "Theimpactjob.COM", link: "https://theimpactjob.com", category: "Social Good", description: "Plataforma especializada en empleos que generan impacto positivo en el mundo." },
-            { name: "Purpose Jobs", link: "https://purposejobs.com", category: "Social Good", description: "Empleos con propósito en organizaciones que buscan cambio social positivo." },
+            { 
+                name: "Idealist.org", 
+                link: "https://www.idealist.org", 
+                category: "Social Good", 
+                description: {
+                    en: "Leading platform for jobs in non-profit organizations and social impact.",
+                    es: "Plataforma líder para empleos en organizaciones sin fines de lucro e impacto social."
+                }
+            },
+            { 
+                name: "All Tech Is Human", 
+                link: "https://alltechishuman.org/jobs", 
+                category: "Social Good", 
+                description: {
+                    en: "Tech jobs focused on positive human impact and technology ethics.",
+                    es: "Empleos tech enfocados en el impacto humano positivo y ética tecnológica."
+                }
+            },
+            { 
+                name: "Escape the City", 
+                link: "https://www.escapethecity.org", 
+                category: "Social Good", 
+                description: {
+                    en: "Alternative jobs for professionals seeking purpose and impact.",
+                    es: "Empleos alternativos para profesionales que buscan propósito e impacto."
+                }
+            },
+            { 
+                name: "Work for Good", 
+                link: "https://workforgood.org", 
+                category: "Social Good", 
+                description: {
+                    en: "Job opportunities in organizations with social impact missions.",
+                    es: "Oportunidades laborales en organizaciones con misión de impacto social."
+                }
+            },
+            { 
+                name: "Impact Opportunity", 
+                link: "https://impactopportunity.org", 
+                category: "Social Good", 
+                description: {
+                    en: "Job portal for generating positive social and environmental impact.",
+                    es: "Portal de empleos para generar impacto social y ambiental positivo."
+                }
+            },
+            { 
+                name: "Tech Jobs for Good", 
+                link: "https://techjobsforgood.com", 
+                category: "Social Good", 
+                description: {
+                    en: "Technology jobs in organizations with social and environmental purpose.",
+                    es: "Empleos tecnológicos en organizaciones con propósito social y ambiental."
+                }
+            },
+            { 
+                name: "Impact Source.ai", 
+                link: "https://impactsource.ai", 
+                category: "Social Good", 
+                description: {
+                    en: "AI applied to connect talent with social impact opportunities.",
+                    es: "IA aplicada para conectar talento con oportunidades de impacto social."
+                }
+            },
+            { 
+                name: "Theimpactjob.COM", 
+                link: "https://theimpactjob.com", 
+                category: "Social Good", 
+                description: {
+                    en: "Platform specialized in jobs that generate positive impact in the world.",
+                    es: "Plataforma especializada en empleos que generan impacto positivo en el mundo."
+                }
+            },
+            { 
+                name: "Purpose Jobs", 
+                link: "https://purposejobs.com", 
+                category: "Social Good", 
+                description: {
+                    en: "Purpose-driven jobs in organizations seeking positive social change.",
+                    es: "Empleos con propósito en organizaciones que buscan cambio social positivo."
+                }
+            },
 
             // General/Mainstream
-            { name: "LinkedIn", link: "https://www.linkedin.com/jobs", category: "Mainstream", description: "La red profesional más grande del mundo con amplia sección de empleos remotos." },
-            { name: "Glassdoor", link: "https://www.glassdoor.com", category: "Mainstream", description: "Portal de empleos con reviews de empresas y transparencia salarial." },
-            { name: "Indeed", link: "https://www.indeed.com", category: "Mainstream", description: "Uno de los motores de búsqueda de empleo más grandes del mundo." },
-            { name: "HiringCafe", link: "https://hiringcafe.com", category: "Mainstream", description: "Plataforma de empleos con enfoque en conectar candidatos con empleadores." },
-            { name: "Ladders", link: "https://www.theladders.com", category: "Mainstream", description: "Empleos ejecutivos y profesionales de alto nivel con salarios superiores." },
-            { name: "CareerBuilder", link: "https://www.careerbuilder.com", category: "Mainstream", description: "Una de las plataformas de empleo más establecidas con amplia base de datos." },
-            { name: "Monster", link: "https://www.monster.com", category: "Mainstream", description: "Portal de empleos global con herramientas de búsqueda y desarrollo profesional." }
+            { 
+                name: "LinkedIn", 
+                link: "https://www.linkedin.com/jobs", 
+                category: "Mainstream", 
+                description: {
+                    en: "The world's largest professional network with extensive remote job section.",
+                    es: "La red profesional más grande del mundo con amplia sección de empleos remotos."
+                }
+            },
+            { 
+                name: "Glassdoor", 
+                link: "https://www.glassdoor.com", 
+                category: "Mainstream", 
+                description: {
+                    en: "Job portal with company reviews and salary transparency.",
+                    es: "Portal de empleos con reviews de empresas y transparencia salarial."
+                }
+            },
+            { 
+                name: "Indeed", 
+                link: "https://www.indeed.com", 
+                category: "Mainstream", 
+                description: {
+                    en: "One of the world's largest job search engines.",
+                    es: "Uno de los motores de búsqueda de empleo más grandes del mundo."
+                }
+            },
+            { 
+                name: "HiringCafe", 
+                link: "https://hiringcafe.com", 
+                category: "Mainstream", 
+                description: {
+                    en: "Job platform focused on connecting candidates with employers.",
+                    es: "Plataforma de empleos con enfoque en conectar candidatos con empleadores."
+                }
+            },
+            { 
+                name: "Ladders", 
+                link: "https://www.theladders.com", 
+                category: "Mainstream", 
+                description: {
+                    en: "Executive and high-level professional jobs with higher salaries.",
+                    es: "Empleos ejecutivos y profesionales de alto nivel con salarios superiores."
+                }
+            },
+            { 
+                name: "CareerBuilder", 
+                link: "https://www.careerbuilder.com", 
+                category: "Mainstream", 
+                description: {
+                    en: "One of the most established job platforms with extensive database.",
+                    es: "Una de las plataformas de empleo más establecidas con amplia base de datos."
+                }
+            },
+            { 
+                name: "Monster", 
+                link: "https://www.monster.com", 
+                category: "Mainstream", 
+                description: {
+                    en: "Global job portal with search tools and professional development resources.",
+                    es: "Portal de empleos global con herramientas de búsqueda y desarrollo profesional."
+                }
+            }
         ];
 
         let filteredData = [...jobBoards];
 
+        function updateLanguage(lang) {
+            currentLanguage = lang;
+            const t = translations[lang];
+            
+            // Update UI text
+            document.getElementById('mainTitle').textContent = t.mainTitle;
+            document.getElementById('mainSubtitle').textContent = t.mainSubtitle;
+            document.getElementById('searchInput').placeholder = t.searchPlaceholder;
+            document.getElementById('exportText').textContent = t.exportText;
+            document.getElementById('totalLabel').textContent = t.totalLabel;
+            document.getElementById('visibleLabel').textContent = t.visibleLabel;
+            document.getElementById('nameHeader').textContent = t.nameHeader;
+            document.getElementById('linkHeader').textContent = t.linkHeader;
+            document.getElementById('categoryHeader').textContent = t.categoryHeader;
+            document.getElementById('descriptionHeader').textContent = t.descriptionHeader;
+
+            // Update category filter options
+            const categoryFilter = document.getElementById('categoryFilter');
+            const currentValue = categoryFilter.value;
+            categoryFilter.innerHTML = `
+                <option value="">${t.allCategories}</option>
+                <option value="General">${t.categoryGeneral}</option>
+                <option value="Niche">${t.categoryNiche}</option>
+                <option value="Regional">${t.categoryRegional}</option>
+                <option value="Startup">${t.categoryStartup}</option>
+                <option value="Tech">${t.categoryTech}</option>
+                <option value="Social Good">${t.categorySocialGood}</option>
+                <option value="Mainstream">${t.categoryMainstream}</option>
+            `;
+            categoryFilter.value = currentValue;
+
+            // Re-render table with new language
+            renderTable();
+        }
+
         function renderTable() {
             const tbody = document.getElementById('tableBody');
+            const t = translations[currentLanguage];
             
             if (filteredData.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" class="no-results">No se encontraron resultados para la búsqueda actual.</td></tr>';
+                tbody.innerHTML = `<tr><td colspan="4" class="no-results">${t.noResults}</td></tr>`;
                 return;
             }
 
@@ -408,12 +1096,26 @@
                 <tr>
                     <td><strong>${job.name}</strong></td>
                     <td><a href="${job.link}" target="_blank" class="link">${job.link} 🔗</a></td>
-                    <td><span class="category ${job.category.toLowerCase().replace(' ', '')}">${job.category}</span></td>
-                    <td class="description">${job.description}</td>
+                    <td><span class="category ${job.category.toLowerCase().replace(/\s+/g, '')}">${getCategoryTranslation(job.category)}</span></td>
+                    <td class="description">${job.description[currentLanguage]}</td>
                 </tr>
             `).join('');
 
             updateStats();
+        }
+
+        function getCategoryTranslation(category) {
+            const t = translations[currentLanguage];
+            const categoryMap = {
+                'General': t.categoryGeneral,
+                'Niche': t.categoryNiche,
+                'Regional': t.categoryRegional,
+                'Startup': t.categoryStartup,
+                'Tech': t.categoryTech,
+                'Social Good': t.categorySocialGood,
+                'Mainstream': t.categoryMainstream
+            };
+            return categoryMap[category] || category;
         }
 
         function updateStats() {
@@ -428,7 +1130,7 @@
             filteredData = jobBoards.filter(job => {
                 const matchesSearch = job.name.toLowerCase().includes(searchTerm) ||
                                    job.category.toLowerCase().includes(searchTerm) ||
-                                   job.description.toLowerCase().includes(searchTerm);
+                                   job.description[currentLanguage].toLowerCase().includes(searchTerm);
                                    
                 const matchesCategory = !categoryFilter || job.category === categoryFilter;
                 
@@ -439,24 +1141,25 @@
         }
 
         function exportToExcel() {
-            // Crear contenido CSV
-            const headers = ['Nombre', 'Link', 'Categoría', 'Descripción'];
+            const t = translations[currentLanguage];
+            // Create CSV content with current language
+            const headers = [t.nameHeader, t.linkHeader, t.categoryHeader, t.descriptionHeader];
             const csvContent = [
                 headers.join(','),
                 ...filteredData.map(job => [
                     `"${job.name}"`,
                     `"${job.link}"`,
-                    `"${job.category}"`,
-                    `"${job.description}"`
+                    `"${getCategoryTranslation(job.category)}"`,
+                    `"${job.description[currentLanguage].replace(/"/g, '""')}"`
                 ].join(','))
             ].join('\n');
 
-            // Crear y descargar archivo
+            // Create and download file
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
             const url = URL.createObjectURL(blob);
             link.setAttribute('href', url);
-            link.setAttribute('download', 'remote_job_boards.csv');
+            link.setAttribute('download', `remote_job_boards_${currentLanguage}.csv`);
             link.style.visibility = 'hidden';
             document.body.appendChild(link);
             link.click();
@@ -466,9 +1169,12 @@
         // Event listeners
         document.getElementById('searchInput').addEventListener('input', filterData);
         document.getElementById('categoryFilter').addEventListener('change', filterData);
+        document.getElementById('languageSelector').addEventListener('change', function(e) {
+            updateLanguage(e.target.value);
+        });
 
-        // Initial render
-        renderTable();
+        // Initial render (default English)
+        updateLanguage('en');
     </script>
 </body>
 </html>
